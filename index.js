@@ -1,6 +1,48 @@
 // main entry script
 
-const buildActivityFilter = activities => {
+const filterParksByActivity = () => {
+  const select = document.getElementById('activitySelect');
+  return [...select.options].filter(option => option.selected).map(option => option.value);
+}
+
+const updateParksList = data => {
+
+  const parksWindow = document.getElementById('park-content');
+
+  // if existing park data exists, remove it
+  while (parksWindow.firstChild) {
+    parksWindow.removeChild(parksWindow.firstChild);
+  }
+
+      // create a card for each park in the returned data array
+  if (data.data.length < 1) {
+
+    const noResultMsg = document.createElement('p');
+    noResultMsg.setAttribute('class', 'text-center');
+    noResultMsg.innerHTML = 'Sorry, there are no parks in that state (or it doesn\'t exist)';
+    parksWindow.appendChild(noResultMsg);
+
+  } else {
+
+    data.data.forEach(park => {
+      if (park.images[0]) {
+
+        // reduce activities to only list of string names, then check if list includes all filter activities
+        const activityList = park.activities.map(item => item.name);
+        // console.log("requestParksData -> activityList", activityList);
+        console.log('FILTER LIST: ', filterParksByActivity());
+        console.log('ACTIVITIES: ', activityList);
+        if (activityList.includes(...filterParksByActivity()) || filterParksByActivity().length == 0) {
+          // build cards
+          const card = buildParkCard(park);
+          parksWindow.append(card);
+        }
+      }
+    })
+  }
+}
+
+const buildActivityFilter = () => {
 
   const activityFilter = document.createElement('div');
   activityFilter.setAttribute('class', 'dropdown');
@@ -14,11 +56,13 @@ const buildActivityFilter = activities => {
   activitySelect.setAttribute('class', 'dropdown-content');
   activitySelect.setAttribute('multiple', true);
 
+  const activities = ["Biking","Boat Tour","Boating","Canoeing","Fishing","Food","Freshwater Fishing","Guided Tours","Kayaking","Museum Exhibits","Paddling","Picnicking","Road Biking","Shopping","Stand Up Paddleboarding","Wildlife Watching","Arts and Culture","Astronomy","ATV Off-Roading","Auto and ATV","Backcountry Camping","Backcountry Hiking","Birdwatching","Bookstore and Park Store","Camping","Car or Front Country Camping","Cultural Demonstrations","Front-Country Hiking","Gathering and Foraging","Group Camping","Hiking","Hunting","Hunting and Gathering","Junior Ranger Program","Mountain Biking","Park Film","RV Camping","Scenic Driving","Stargazing","Cross-Country Skiing","Dining","Horse Trekking","Skiing","Snowshoeing","Self-Guided Tours - Walking","Climbing","Horseback Riding","Whitewater Rafting","Bus/Shuttle Guided Tour","Canoe or Kayak Camping","Golfing","Historic Weapons Demonstration","Living History","Saltwater Fishing","Saltwater Swimming","Snorkeling","Surfing","Swimming","Citizen Science","Hands-On","Volunteer Vacation","Craft Demonstrations","Downhill Skiing","Gift Shop and Souvenirs","Live Music","Reenactments","Snow Play","SCUBA Diving","Caving","First Person Interpretation","Arts and Crafts","Self-Guided Tours - Auto","Mountain Climbing","Off-Trail Permitted Hiking","Rock Climbing","Theater","Dog Sledding","Fixed Wing Flying","Fly Fishing","Flying","Helicopter Flying","Ice Climbing","Snowmobiling","Compass and GPS","Geocaching","Freshwater Swimming","River Tubing","Tubing","Horse Camping (see also camping)","Horse Camping (see also Horse/Stock Use)","Motorized Boating"].sort();
+
   // build options and append to activity select
   activities.forEach(activity => {
     let item = document.createElement('option');
-    item.innerHTML = activity.name;
-    item.value = activity.name;
+    item.innerHTML = activity;
+    item.value = activity;
     activitySelect.appendChild(item);
   })
 
@@ -112,16 +156,12 @@ const buildParkCard = park => {
 
 const requestParksData = (stateCode) => {
 
-  const parksWindow = document.getElementById('park-content');
-
-  // if existing park data exists, remove it
-  while (parksWindow.firstChild) {
-    parksWindow.removeChild(parksWindow.firstChild);
-  }
-
   const loadingMessage = document.createElement('p');
+  loadingMessage.id = 'loadingMessage';
   loadingMessage.innerHTML = ('Loading parks data, please wait...');
   loadingMessage.setAttribute('class','text-center contrast-text');
+
+  const parksWindow = document.getElementById('park-content');
   parksWindow.appendChild(loadingMessage);
 
   // display loading message until results load, then unmount and display results
@@ -129,22 +169,8 @@ const requestParksData = (stateCode) => {
     .then(response => response.json())
     .then(data => {
       // remove loading message
-      // parksWindow.removeChild(loadingMessage);
-      loadingMessage.parentNode.removeChild(loadingMessage);
-      // create a card for each park in the returned data array
-      if (data.data.length < 1) {
-        const noResultMsg = document.createElement('p');
-        noResultMsg.setAttribute('class', 'text-center');
-        noResultMsg.innerHTML = 'Sorry, there are no parks in that state (or it doesn\'t exist)';
-        parksWindow.appendChild(noResultMsg);
-      } else {
-        data.data.forEach(park => {
-          if (park.images[0]) {
-            const card = buildParkCard(park);
-            parksWindow.append(card);
-          }
-        })
-      }
+      parksWindow.removeChild(loadingMessage);
+      updateParksList(data);
     })
     .catch(err => console.log(err));
 }
@@ -172,7 +198,7 @@ const buildSearchForm = () => {
   submitButton.setAttribute('class', 'btn');
   submitButton.setAttribute('value', 'Submit');
 
-  searchForm.append(stateInput, submitButton, buildActivityFilter([{ name: 'test1' }, { name: 'test2' }]));
+  searchForm.append(stateInput, submitButton, buildActivityFilter());
 
   return searchForm;
 }
