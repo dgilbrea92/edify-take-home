@@ -1,0 +1,11 @@
+h1 {
+  margin: 0 auto;
+}
+
+.wrapper {
+  border: 1px solid black;
+}
+
+.park-card {
+  border: 1px solid black;
+}
