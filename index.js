@@ -35,7 +35,7 @@ const buildParkCard = park => {
 
   // add favorites icon
   const favoriteBtn = document.createElement('p');
-  favoriteBtn.setAttribute('class', 'right-align');
+  favoriteBtn.setAttribute('class', 'white-icon');
   favoriteBtn.innerHTML = '☆';
   favoriteBtn.onclick = e => {
 
@@ -70,7 +70,7 @@ const buildParkCard = park => {
   parkEmail.innerHTML = 'Email: ' + park.contacts.emailAddresses[0].emailAddress;
 
   const cornerArrow = document.createElement('p');
-  cornerArrow.setAttribute('class', 'right-align');
+  cornerArrow.setAttribute('class', 'white-icon');
   cornerArrow.innerHTML = '↓';
   cornerArrow.onclick = e => {
 
@@ -81,6 +81,8 @@ const buildParkCard = park => {
 
       const activities = document.getElementById('activities');
       activities.parentNode.removeChild(activities);
+
+      parkCard.setAttribute('class', 'park-card text-center contrast-text');
 
     } else {
 
@@ -97,6 +99,7 @@ const buildParkCard = park => {
         activities.appendChild(item);
       })
 
+      parkCard.setAttribute('class', 'park-card text-center contrast-text expanded');
       parkCard.append(activities);
     }
 
@@ -181,7 +184,7 @@ const buildHeader = () => {
 
   const title = document.createElement('h1');
   title.setAttribute('class', 'contrast-text')
-  title.innerHTML = 'Park Buddy';
+  title.innerHTML = 'Park Finder';
 
   headerBox.append(title, buildSearchForm());
 

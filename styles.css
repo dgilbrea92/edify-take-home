@@ -12,13 +12,17 @@ h1 {
 
 .grid {
   display: grid;
-  grid-gap: 1rem;
+  grid-gap: 2rem;
 }
 
 @supports (width: min(250px, 100%)) {
   .grid {
     grid-template-columns: repeat(auto-fit, minmax(min(250px, 100%), 1fr));
   }
+}
+
+.expanded {
+  grid-row: span 2;
 }
 
 .wrapper {
@@ -31,6 +35,7 @@ h1 {
   padding: 5px;
   filter: sepia(30%);
   border-radius: 5px;
+  word-wrap: break-word;
 }
 
 .text-center {
@@ -45,45 +50,7 @@ h1 {
   -webkit-text-stroke-color: black;
 }
 
- /* The Modal (background) */
- .modal {
-  display: none; /* Hidden by default */
-  position: fixed; /* Stay in place */
-  z-index: 1; /* Sit on top */
-  left: 25%;
-  top: 10%;
-  width: 50%; /* Full width */
-  height: 80%; /* Full height */
-  overflow: auto; /* Enable scroll if needed */
-  background-color: rgb(0,0,0); /* Fallback color */
-  background-color: rgba(0,0,0,0.4); /* Black w/ opacity */
-}
-
-/* Modal Content/Box */
-.modal-content {
-  background-color: #fefefe;
-  margin: 15% auto; /* 15% from the top and centered */
-  padding: 20px;
-  border: 1px solid #888;
-  width: 80%; /* Could be more or less, depending on screen size */
-}
-
-/* The Close Button */
-.close {
-  color: #aaa;
-  float: right;
-  font-size: 28px;
-  font-weight: bold;
-}
-
-.close:hover,
-.close:focus {
-  color: black;
-  text-decoration: none;
-  cursor: pointer;
-}
-
-.right-align {
+.white-icon {
   width: 100%;
   margin-bottom: 0px;
   color: white;
@@ -96,7 +63,7 @@ h1 {
   padding: 1px;
   font-size: 16px;
   border: none;
-  margin: 5 5 5 5;
+  margin: 2px;
 }
 
 .dropdown {
