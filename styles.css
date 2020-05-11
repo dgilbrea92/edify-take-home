@@ -1,11 +1,45 @@
+#root {
+  font: bold 20px sans-serif;
+}
+
+body {
+  background-color: rgb(49, 49, 49);
+}
+
 h1 {
   margin: 0 auto;
 }
 
+.grid {
+  display: grid;
+  grid-gap: 1rem;
+}
+
+@supports (width: min(250px, 100%)) {
+  .grid {
+    grid-template-columns: repeat(auto-fit, minmax(min(250px, 100%), 1fr));
+  }
+}
+
 .wrapper {
-  border: 1px solid black;
+  margin-bottom: 5px;
 }
 
 .park-card {
   border: 1px solid black;
+  background-size: cover;
+  padding: 5px;
+  filter: sepia(30%);
+}
+
+.text-center {
+  text-align: center;
+  width: 100%;
+}
+
+.contrast-text {
+  color: black;
+  -webkit-text-fill-color: white;
+  -webkit-text-stroke-width: 1px;
+  -webkit-text-stroke-color: black;
 }
