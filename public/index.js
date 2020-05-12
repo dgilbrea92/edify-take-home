@@ -1,4 +1,4 @@
-// main entry script
+// MAIN ENTRY SCRIPT
 
 const filterParksByActivity = () => {
   const select = document.getElementById('activitySelect');
@@ -8,37 +8,22 @@ const filterParksByActivity = () => {
 const updateParksList = data => {
 
   const parksWindow = document.getElementById('park-content');
-
-  // if existing park data exists, remove it
-  while (parksWindow.firstChild) {
-    parksWindow.removeChild(parksWindow.firstChild);
-  }
-
-      // create a card for each park in the returned data array
-  if (data.data.length < 1) {
-
+  // create a card for each park in the returned data array
+  if (data.entries().length < 1) {
     const noResultMsg = document.createElement('p');
     noResultMsg.setAttribute('class', 'text-center');
     noResultMsg.innerHTML = 'Sorry, there are no parks in that state (or it doesn\'t exist)';
     parksWindow.appendChild(noResultMsg);
-
   } else {
-
-    data.data.forEach(park => {
-      if (park.images[0]) {
-
-        // reduce activities to only list of string names, then check if list includes all filter activities
-        const activityList = park.activities.map(item => item.name);
-        // console.log("requestParksData -> activityList", activityList);
-        console.log('FILTER LIST: ', filterParksByActivity());
-        console.log('ACTIVITIES: ', activityList);
-        if (activityList.includes(...filterParksByActivity()) || filterParksByActivity().length == 0) {
-          // build cards
-          const card = buildParkCard(park);
-          parksWindow.append(card);
-        }
+    for (let park in data) {
+      // reduce activities to only list of string names, then check if list includes all filter activities
+      const activityList = park.activities.map(item => item.name);
+      if (activityList.includes(...filterParksByActivity()) || filterParksByActivity().length == 0) {
+        // build cards
+        const card = buildParkCard(park);
+        parksWindow.append(card);
       }
-    })
+    }
   }
 }
 
@@ -99,80 +84,94 @@ const buildParkCard = park => {
 
   // display entrance fee
   // if entrance fee data exists, parse as int. else, set to 0.00
-  let cost = park.entranceFees[0] ? parseInt(park.entranceFees[0].cost) : 0.00;
+  let cost = park.entranceFee ? parseInt(park.entranceFee) : 0.00;
   // trim entrance fee data to 2 decimal places before appending to card
   const parkCost = document.createElement('p');
   parkCost.innerHTML = 'Entrance fee: $' + cost.toFixed(2);
 
   // display links to phone number and email address
   const parkPhone = document.createElement('a');
-  parkPhone.setAttribute('href', 'tel:' + park.contacts.phoneNumbers[0].phoneNumber);
-  parkPhone.innerHTML = 'Phone: ' + park.contacts.phoneNumbers[0].phoneNumber + '<br />';
+  parkPhone.setAttribute('href', 'tel:' + park.parkPhone);
+  parkPhone.innerHTML = 'Phone: ' + park.parkPhone + '<br />';
 
   const parkEmail = document.createElement('a');
-  parkEmail.setAttribute('href', 'mailto:' + park.contacts.emailAddresses[0].emailAddress);
-  parkEmail.innerHTML = 'Email: ' + park.contacts.emailAddresses[0].emailAddress;
+  parkEmail.setAttribute('href', 'mailto:' + park.parkEmail);
+  parkEmail.innerHTML = 'Email: ' + park.parkEmail;
 
   const cornerArrow = document.createElement('p');
   cornerArrow.setAttribute('class', 'white-icon');
   cornerArrow.innerHTML = '↓';
   cornerArrow.onclick = e => {
-
     // if arrow points up, switch to down and expand contents
     if (e.target.innerHTML == '↑') {
-
       e.target.innerHTML = '↓';
-
       const activities = document.getElementById('activities');
       activities.parentNode.removeChild(activities);
-
       parkCard.setAttribute('class', 'park-card text-center contrast-text');
-
     } else {
-
       // if arrow points down, switch to up and close contents
       e.target.innerHTML = '↑';
-
       // add activities list
       const activities = document.createElement('ul');
       activities.id = 'activities';
-
       park.activities.forEach(activity => {
         let item = document.createElement('li');
         item.innerHTML = activity.name;
         activities.appendChild(item);
-      })
-
+      });
       parkCard.setAttribute('class', 'park-card text-center contrast-text expanded');
       parkCard.append(activities);
     }
-
-
   };
-
   parkCard.append(favoriteBtn, parkName, parkLocation, parkCost, parkPhone, parkEmail, cornerArrow);
   return parkCard;
 }
 
-const requestParksData = (stateCode) => {
-
-  const loadingMessage = document.createElement('p');
-  loadingMessage.id = 'loadingMessage';
-  loadingMessage.innerHTML = ('Loading parks data, please wait...');
-  loadingMessage.setAttribute('class','text-center contrast-text');
+const updateLoadingMessage = (content) => {
+  // build loading message
+  let loadingMessage;
+  if (!document.getElementById('loadingMessage')) {
+    loadingMessage = document.createElement('p');
+    loadingMessage.id = 'loadingMessage';
+    loadingMessage.innerHTML = ('Loading parks data, please wait...');
+    loadingMessage.setAttribute('class','text-center contrast-text');
+  } else {
+    loadingMessage = document.getElementById('loadingMessage');
+  }
 
   const parksWindow = document.getElementById('park-content');
-  parksWindow.appendChild(loadingMessage);
+  // if existing park data exists, remove it
+  while (parksWindow.firstChild) {
+    parksWindow.removeChild(parksWindow.firstChild);
+  }
+  // if content was passed in, remove the loading message and update park list
+  if (content) {
+    loadingMessage.parentNode.removeChild(loadingMessage);
+    updateParksList(content);
+  } else {
+    // else add the loading message
+    parksWindow.appendChild(loadingMessage);
+  }
+}
 
-  // display loading message until results load, then unmount and display results
-  fetch(`https://developer.nps.gov/api/v1/parks?stateCode=${stateCode}&api_key=j1WghsFUUeH4fyCRBXxdB2wLbKpIqoWhmLOI2onV`)
-    .then(response => response.json())
-    .then(data => {
-      // remove loading message
-      parksWindow.removeChild(loadingMessage);
-      updateParksList(data);
-    })
-    .catch(err => console.log(err));
+const requestParksData = (stateCode) => {
+  // add loading message
+  updateLoadingMessage();
+  // build get request with state and filter data
+  const url = `/api/parks/${stateCode}/${filterParksByActivity()}`;
+
+  const getData = async url => {
+    try {
+      const response = await fetch(url);
+      const json = await response.json();
+      console.log(json);
+      updateLoadingMessage(json);
+    } catch (error) {
+      console.log('ERROR: ', error);
+    }
+  };
+
+  getData(url);
 }
 
 const handleSubmit = event => {
