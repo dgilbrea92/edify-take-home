@@ -5,24 +5,17 @@ const filterParksByActivity = () => {
   return [...select.options].filter(option => option.selected).map(option => option.value);
 }
 
-const updateParksList = data => {
+const updateParksList = async (data) => {
 
   const parksWindow = document.getElementById('park-content');
   // create a card for each park in the returned data array
-  if (data.entries().length < 1) {
-    const noResultMsg = document.createElement('p');
-    noResultMsg.setAttribute('class', 'text-center');
-    noResultMsg.innerHTML = 'Sorry, there are no parks in that state (or it doesn\'t exist)';
-    parksWindow.appendChild(noResultMsg);
-  } else {
-    for (let park in data) {
-      // reduce activities to only list of string names, then check if list includes all filter activities
-      const activityList = park.activities.map(item => item.name);
-      if (activityList.includes(...filterParksByActivity()) || filterParksByActivity().length == 0) {
-        // build cards
-        const card = buildParkCard(park);
-        parksWindow.append(card);
-      }
+  for (let park in data) {
+    // reduce activities to only list of string names, then check if list includes all filter activities
+    const activityList = await data[park].activities.map(item => item.name);
+    if (activityList.includes(...filterParksByActivity()) || filterParksByActivity().length == 0) {
+      // build cards
+      const card = buildParkCard(data[park]);
+      parksWindow.append(card);
     }
   }
 }
@@ -60,27 +53,68 @@ const buildParkCard = park => {
 
   const parkCard = document.createElement('div');
   parkCard.setAttribute('class', 'park-card text-center contrast-text');
-  parkCard.style.backgroundImage = `url(${park.images[0].url})`;
+  parkCard.style.backgroundImage = `url(${park.imageUrl})`;
 
   // add favorites icon
   const favoriteBtn = document.createElement('p');
   favoriteBtn.setAttribute('class', 'white-icon');
   favoriteBtn.innerHTML = '☆';
   favoriteBtn.onclick = e => {
-
     if (e.target.innerHTML == '☆') {
       e.target.innerHTML = '★';
+      // put request to update favorite status
+      const parkName = e.target.parentNode.childNodes[1].innerHTML;
+      const url = '/api/parks/favorite/';
+
+      const updateFavorite = async (url) => {
+        try {
+          const response = await fetch(url, {
+            method: 'PATCH',
+            body: {
+              "name": `${parkName}`,
+              "favorite": true
+            }
+          });
+          const json = await response.json();
+          console.log(json);
+
+        } catch (error) {
+          console.log(error);
+        }
+      };
+
+      updateFavorite(url);
+
     } else {
       e.target.innerHTML = '☆';
-    }
-  };
+      // put request to update favorite status
+      const parkName = e.target.parentNode.childNodes[1].innerHTML;
+      const url = '/api/parks/favorite/';
+
+      const updateFavorite = async (url) => {
+        try {
+          const response = await fetch(url, {
+            method: 'PATCH',
+            body: {
+              "name": `${parkName}`,
+              "favorite": false
+            }
+          });
+          const json = await response.json();
+          console.log(json);
+
+        } catch (error) {
+          console.log(error);
+        }
+      }
+    };
 
   // display name and location
   const parkName = document.createElement('h2');
   parkName.innerHTML = park.fullName;
 
   const parkLocation = document.createElement('p');
-  parkLocation.innerHTML = (park.addresses[0].city + ', ' + park.addresses[0].stateCode);
+  parkLocation.innerHTML = (park.city + ', ' + park.stateCode);
 
   // display entrance fee
   // if entrance fee data exists, parse as int. else, set to 0.00
@@ -146,7 +180,7 @@ const updateLoadingMessage = (content) => {
   }
   // if content was passed in, remove the loading message and update park list
   if (content) {
-    loadingMessage.parentNode.removeChild(loadingMessage);
+    // loadingMessage.parentNode.removeChild(loadingMessage);
     updateParksList(content);
   } else {
     // else add the loading message
@@ -164,7 +198,6 @@ const requestParksData = (stateCode) => {
     try {
       const response = await fetch(url);
       const json = await response.json();
-      console.log(json);
       updateLoadingMessage(json);
     } catch (error) {
       console.log('ERROR: ', error);

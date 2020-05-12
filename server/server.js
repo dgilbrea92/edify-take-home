@@ -10,7 +10,7 @@ app.use(express.json());
 
 app.use(express.static('public'));
 
-app.post('/api/parks/favorite/', (req, res, next) => {
+app.patch('/api/parks/favorite/', (req, res, next) => {
   res.status(200).send('OK');
 })
 
@@ -28,7 +28,7 @@ app.get('/api/parks/:state', (req, res, next) => {
         res.status(200).send(parksCache[req.params.state]);
       } else {
         // else fetch new data from parks API
-        console.log('Not found');
+        console.log('Not found, saving for later.');
         const url = `https://developer.nps.gov/api/v1/parks?stateCode=${req.params.state}&api_key=j1WghsFUUeH4fyCRBXxdB2wLbKpIqoWhmLOI2onV`;
 
         const getData = async url => {
@@ -41,6 +41,7 @@ app.get('/api/parks/:state', (req, res, next) => {
             for (let park of json.data) {
               if (park.fullName && park.images[0].url && park.entranceFees[0]) {
                 data[park.fullName] = {
+                  fullName: park.fullName,
                   favorite: false,
                   city: park.addresses[0].city,
                   stateCode: park.addresses[0].stateCode,
@@ -54,6 +55,7 @@ app.get('/api/parks/:state', (req, res, next) => {
             }
             // write data to cache
             parksCache[req.params.state] = data;
+            res.locals = parksCache[req.params.state];
             fs.writeFile(path.join(__dirname, 'cache.json'), JSON.stringify(parksCache), err => {
               if (err) {
                 next(err);
@@ -62,7 +64,7 @@ app.get('/api/parks/:state', (req, res, next) => {
               }
             });
 
-            res.status(200).send(json);
+            res.status(200).send(res.locals);
           } catch (error) {
             next(error);
           }
