@@ -10,8 +10,53 @@ app.use(express.json());
 
 app.use(express.static('public'));
 
-app.patch('/api/parks/favorite/', (req, res, next) => {
-  res.status(200).send('OK');
+app.get('/api/parks/favorites', (req, res, next) => {
+  fs.readFile(path.join(__dirname, 'cache.json'), 'utf8', (err, cache) => {
+    if (err) {
+      throw err;
+    } else {
+      const favorites = {};
+      const parsedCache = JSON.parse(cache);
+      for (let state in parsedCache) {
+        for (let park in parsedCache[state]) {
+          if (parsedCache[state][park].favorite == true) {
+            favorites[parsedCache[state][park].fullName] = {
+              fullName: parsedCache[state][park].fullName,
+              favorite: true,
+              city: parsedCache[state][park].city,
+              stateCode: parsedCache[state][park].stateCode,
+              entranceFee: parsedCache[state][park].entranceFee,
+              parkPhone: parsedCache[state][park].parkPhone,
+              parkEmail: parsedCache[state][park].parkEmail,
+              activities: parsedCache[state][park].activities,
+              imageUrl: parsedCache[state][park].imageUrl
+            }
+          }
+        }
+      }
+      res.status(200).send(favorites);
+    }
+  })
+})
+
+app.patch('/api/parks/favorites', (req, res, next) => {
+  // find req.body.fullName in cache and set favorite to true
+  fs.readFile(path.join(__dirname, 'cache.json'), 'utf8', (err, data) => {
+    if (err) {
+      throw err;
+    } else {
+      const parksCache = JSON.parse(data);
+      parksCache[req.body.stateCode][req.body.fullName].favorite = req.body.favorite;
+
+      fs.writeFile(path.join(__dirname, 'cache.json'), JSON.stringify(parksCache), err => {
+        if (err) {
+          next(err);
+        } else {
+          res.status(200).send('Successfully updated favorites.');
+        }
+      });
+    }
+  })
 })
 
 app.get('/api/parks/:state', (req, res, next) => {
@@ -20,15 +65,12 @@ app.get('/api/parks/:state', (req, res, next) => {
     if (err) {
       throw err;
     } else {
-
       const parksCache = JSON.parse(data);
 
       if (parksCache[req.params.state]) {
-        console.log('Found in cache!');
         res.status(200).send(parksCache[req.params.state]);
       } else {
         // else fetch new data from parks API
-        console.log('Not found, saving for later.');
         const url = `https://developer.nps.gov/api/v1/parks?stateCode=${req.params.state}&api_key=j1WghsFUUeH4fyCRBXxdB2wLbKpIqoWhmLOI2onV`;
 
         const getData = async url => {
@@ -69,13 +111,10 @@ app.get('/api/parks/:state', (req, res, next) => {
             next(error);
           }
         };
-
         getData(url);
       }
     }
   })
-
-
 })
 
 app.use((err, req, res, next) => {
