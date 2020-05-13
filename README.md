@@ -1,6 +1,6 @@
 # Park Finder
 
-An app to locate national parks by state and save your favorites locally.
+An app to locate national parks by state and save your favorites locally. Filter parks by activity and expand the cards to see activities in each park. Features local caching to speed up repeated queries.
 
 ## Getting Started
 
