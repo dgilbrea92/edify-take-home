@@ -27,13 +27,13 @@ activities.forEach(activity => {
 
 activityFilter.append(activityButton, activitySelect);
 
+// helper function to fetch park data and render to the page
 const getData = async (url) => {
   try {
     const response = await fetch(url);
     const json = await response.json();
     window.parkList = json;
     renderParkListToDisplay(json);
-    // updateLoadingMessage(window.parkList);
   } catch (error) {
     console.log('ERROR: ', error);
   }
@@ -85,9 +85,7 @@ root.append(headerBox, parkContent);
 
 // FUNCTIONS
 
-// Request all favorites from cache on page load and store in global state
-
-
+// retrieve selected activity options from multi-select
 const getSelectedActivities = () => {
   const select = document.getElementById('activitySelect');
   return [...select.options].filter(option => option.selected).map(option => option.value);
@@ -100,26 +98,11 @@ const renderParkListToDisplay = async (list) => {
     parksWindow.removeChild(parksWindow.firstChild);
   }
   for (let park in list) {
+    // filter parks by activity data from activity selector
     const activityList = await list[park].activities.map(item => item.name);
-    console.log(activityList);
     if (activityList.includes(...getSelectedActivities()) || getSelectedActivities().length == 0) {
-      // build cards
+      // build cards with park data
       const card = buildParkCard(list[park]);
-      parksWindow.append(card);
-    }
-  }
-}
-
-const filterParksListByActivity = async (data) => {
-  const parksWindow = document.getElementById('park-content');
-  // create a card for each park in the returned data array
-  for (let park in data) {
-    // reduce activities to only list of string names, then check if list includes all filter activities
-    const activityList = await data[park].activities.map(item => item.name);
-    console.log(activityList);
-    if (activityList.includes(...getSelectedActivities()) || getSelectedActivities().length == 0) {
-      // build cards
-      const card = buildParkCard(data[park]);
       parksWindow.append(card);
     }
   }
@@ -213,6 +196,7 @@ const buildParkCard = park => {
   parkEmail.setAttribute('href', 'mailto:' + park.parkEmail);
   parkEmail.innerHTML = 'Email: ' + park.parkEmail;
 
+  // add arrow button to expand card with activity data
   const cornerArrow = document.createElement('p');
   cornerArrow.setAttribute('class', 'white-icon');
   cornerArrow.innerHTML = '↓';
@@ -243,7 +227,7 @@ const buildParkCard = park => {
 }
 
 const updateLoadingMessage = (content) => {
-  // build loading message
+  // build loading message if it doesn't exist yet
   let loadingMessage;
   if (!document.getElementById('loadingMessage')) {
     loadingMessage = document.createElement('p');
@@ -263,13 +247,7 @@ const updateLoadingMessage = (content) => {
   parksWindow.appendChild(loadingMessage);
 }
 
-// const requestParksData = (stateCode) => {
-//   // add loading message
-//   updateLoadingMessage();
-//   // build get request with state and filter data
-//   getData(`/api/parks/${stateCode}`);
-// }
-
+// on submit, retrieve all parks by state
 const handleSubmit = event => {
   event.preventDefault();
   const formValue = document.getElementById('state-input').value;
