@@ -1,0 +1,27 @@
+{
+  "name": "edify-take-home",
+  "version": "1.0.0",
+  "description": "national park finder app",
+  "main": "index.js",
+  "scripts": {
+    "start": "node server/server.js",
+    "test": "test"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/dgilbrea92/edify-take-home.git"
+  },
+  "author": "Dakota Gilbreath",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/dgilbrea92/edify-take-home/issues"
+  },
+  "homepage": "https://github.com/dgilbrea92/edify-take-home#readme",
+  "dependencies": {
+    "express": "^4.17.1",
+    "fs": "0.0.1-security",
+    "node": "^14.2.0",
+    "node-fetch": "^2.6.0",
+    "path": "^0.12.7"
+  }
+}

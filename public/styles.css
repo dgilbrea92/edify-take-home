@@ -64,6 +64,7 @@ h1 {
   font-size: 16px;
   border: none;
   margin: 2px;
+  border-radius: 5px;
 }
 
 .dropdown {
