@@ -8,6 +8,10 @@ Download the source code and install dependencies
 
 `npm install`
 
+Start your local server
+
+`npm start`
+
 Then open http://localhost:3000 from a browser to load the landing page.
 
 Demo:
