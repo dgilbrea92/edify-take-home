@@ -11,12 +11,14 @@ app.use(express.json());
 app.use(express.static('public'));
 
 app.get('/api/parks/favorites', (req, res, next) => {
+  // search cache for all favorited parks
   fs.readFile(path.join(__dirname, 'cache.json'), 'utf8', (err, cache) => {
     if (err) {
       throw err;
     } else {
       const favorites = {};
       const parsedCache = JSON.parse(cache);
+      // populate favorites object with favorites from cache results
       for (let state in parsedCache) {
         for (let park in parsedCache[state]) {
           if (parsedCache[state][park].favorite == true) {
